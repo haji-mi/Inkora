@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { TitleBar, AppTheme } from './components/TitleBar';
+import { TitleBar, AppTheme, AppIconStyle } from './components/TitleBar';
 import { StatusBar } from './components/StatusBar';
 import { Sidebar } from './components/Sidebar';
 import { Editor, EditorRef } from './components/Editor';
@@ -36,8 +36,27 @@ export default function App() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isTypewriterMode, setIsTypewriterMode] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AppTheme>('github');
+  const [appIconStyle, setAppIconStyle] = useState<AppIconStyle>(() => {
+    return (localStorage.getItem('inkora_app_icon_style') as AppIconStyle) || 'c';
+  });
   const [activeHeading, setActiveHeading] = useState('');
   const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
+
+  const handleSelectIconStyle = (style: AppIconStyle) => {
+    setAppIconStyle(style);
+    localStorage.setItem('inkora_app_icon_style', style);
+    const favicon = document.getElementById('app-favicon') as HTMLLinkElement;
+    if (favicon) {
+      favicon.href = `/icons/icon-${style}.png`;
+    }
+  };
+
+  useEffect(() => {
+    const favicon = document.getElementById('app-favicon') as HTMLLinkElement;
+    if (favicon) {
+      favicon.href = `/icons/icon-${appIconStyle}.png`;
+    }
+  }, [appIconStyle]);
 
   const activeFile = useMemo(() => {
     return files.find((f) => f.id === activeFileId) || files[0];
@@ -312,6 +331,8 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         }}
         currentTheme={currentTheme}
         onSelectTheme={setCurrentTheme}
+        appIconStyle={appIconStyle}
+        onSelectIconStyle={handleSelectIconStyle}
         onNewFile={handleCreateFile}
         onSaveFile={saveCurrentFile}
         onExportHtml={handleExportHtml}

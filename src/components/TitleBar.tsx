@@ -14,6 +14,7 @@ import {
 import { toggleMaximizeWindow } from '../utils/platform';
 
 export type AppTheme = 'github' | 'night' | 'newsprint' | 'gothic';
+export type AppIconStyle = 'c' | 'a' | 'b';
 
 interface TitleBarProps {
   fileName: string;
@@ -30,6 +31,8 @@ interface TitleBarProps {
   onToggleOutline: () => void;
   currentTheme: AppTheme;
   onSelectTheme: (theme: AppTheme) => void;
+  appIconStyle?: AppIconStyle;
+  onSelectIconStyle?: (style: AppIconStyle) => void;
   onNewFile: () => void;
   onSaveFile: () => void;
   onExportHtml: () => void;
@@ -62,6 +65,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onToggleOutline,
   currentTheme,
   onSelectTheme,
+  appIconStyle = 'c',
+  onSelectIconStyle,
   onNewFile,
   onSaveFile,
   onExportHtml,
@@ -110,11 +115,20 @@ export const TitleBar: React.FC<TitleBarProps> = ({
     >
       {/* Left: App Logo + Typora Windows Classic Menu Bar */}
       <div className="flex items-center h-full" ref={menuContainerRef} data-tauri-drag-region="false">
-        {/* Typora / Inkora Logo */}
-        <div className="flex items-center gap-1.5 px-3 h-full cursor-default border-r border-black/5 dark:border-white/5">
-          <div className="w-4 h-4 rounded bg-[#0071E3] flex items-center justify-center text-white font-bold text-[10px]">
-            I
-          </div>
+        {/* Inkora Logo with dynamic icon style */}
+        <div
+          onClick={() => {
+            const nextMap: Record<AppIconStyle, AppIconStyle> = { c: 'a', a: 'b', b: 'c' };
+            onSelectIconStyle?.(nextMap[appIconStyle]);
+          }}
+          title={`当前图标：${appIconStyle === 'c' ? '象牙纸水墨 (默认)' : appIconStyle === 'a' ? '经典红陶 (Typora款)' : '黑曜石暗夜'} (点击快速切换)`}
+          className="flex items-center gap-1.5 px-2.5 h-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 transition-colors border-r border-black/5 dark:border-white/5 select-none"
+        >
+          <img
+            src={`/icons/icon-${appIconStyle}.png`}
+            alt="Inkora Logo"
+            className="w-4 h-4 rounded-[3px] shadow-xs object-cover"
+          />
           <span className="text-[12px] font-semibold tracking-tight">Inkora</span>
         </div>
 
@@ -441,6 +455,40 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 >
                   <span>Gothic 哥特优雅</span>
                   {currentTheme === 'gothic' && <Check size={12} />}
+                </button>
+                <div className="my-1 border-t border-black/10 dark:border-white/10" />
+                <div className="px-3 py-1 text-[10px] text-mac-text-secondary uppercase tracking-wider font-semibold">
+                  应用图标外观
+                </div>
+                <button
+                  onClick={() => { onSelectIconStyle?.('c'); setActiveMenu(null); }}
+                  className="w-full px-3 py-1.5 hover:bg-[#0071E3] hover:text-white flex items-center justify-between text-left"
+                >
+                  <span className="flex items-center gap-2">
+                    <img src="/icons/icon-c.png" alt="C" className="w-3.5 h-3.5 rounded-[2px]" />
+                    <span>象牙纸水墨 (默认)</span>
+                  </span>
+                  {appIconStyle === 'c' && <Check size={12} />}
+                </button>
+                <button
+                  onClick={() => { onSelectIconStyle?.('a'); setActiveMenu(null); }}
+                  className="w-full px-3 py-1.5 hover:bg-[#0071E3] hover:text-white flex items-center justify-between text-left"
+                >
+                  <span className="flex items-center gap-2">
+                    <img src="/icons/icon-a.png" alt="A" className="w-3.5 h-3.5 rounded-[2px]" />
+                    <span>经典红陶 (Typora款)</span>
+                  </span>
+                  {appIconStyle === 'a' && <Check size={12} />}
+                </button>
+                <button
+                  onClick={() => { onSelectIconStyle?.('b'); setActiveMenu(null); }}
+                  className="w-full px-3 py-1.5 hover:bg-[#0071E3] hover:text-white flex items-center justify-between text-left"
+                >
+                  <span className="flex items-center gap-2">
+                    <img src="/icons/icon-b.png" alt="B" className="w-3.5 h-3.5 rounded-[2px]" />
+                    <span>黑曜石暗夜</span>
+                  </span>
+                  {appIconStyle === 'b' && <Check size={12} />}
                 </button>
               </div>
             )}
