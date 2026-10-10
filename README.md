@@ -94,7 +94,64 @@ npm run build
 npm run tauri dev
 ```
 
-### 4. 打包发布桌面安装包
+### 4. 打包发布桌面安装包 (Windows 本地)
 ```powershell
 npm run tauri build
 ```
+
+---
+
+## 🌐 跨平台一并构建指南 (macOS / Linux / Windows)
+
+Tauri 2 依赖宿主操作系统的原生 GUI 渲染引擎（macOS 的 WebKit/Cocoa、Linux 的 WebKitGTK、Windows 的 WebView2）。
+
+### 方案 A：通过 GitHub Actions 云端一并构建 (推荐、最简便)
+本项目已预置两种 GitHub Actions 工作流，无需在本地配置繁杂的跨平台环境：
+
+1. **日常构建并生成下载制品（CI Build）**：
+   - 配置文件：[`.github/workflows/build.yml`](.github/workflows/build.yml)
+   - 触发方式：推送到 `main` 分支，或在 GitHub Actions 界面点击 **Run workflow**。
+   - 产出结果：自动在 `macos-latest`、`ubuntu-22.04`、`windows-latest` 并行构建，并在 Actions 页面提供 `Inkora-macOS-bundle`（.dmg / .app）、`Inkora-Linux-bundle`（.deb / .AppImage）、`Inkora-Windows-bundle`（.msi / .exe）一键下载。
+
+2. **打 Tag 自动发布全平台版本（Release）**：
+   - 配置文件：[`.github/workflows/release.yml`](.github/workflows/release.yml)
+   - 触发方式：打 `v*` 标签并推送（如 `git tag v0.1.0 && git push origin v0.1.0`）。
+   - 产出结果：自动创建 GitHub Release 并附带所有平台的安装包文件。
+
+---
+
+### 方案 B：在对应操作系统本地构建
+
+#### 🍎 macOS 本地构建
+在 macOS 设备克隆代码后直接执行：
+```bash
+# 1. 安装依赖
+npm install
+
+# 2. 构建 Apple Silicon + Intel 通用二进制
+npm run tauri build -- --target universal-apple-darwin
+
+# 产物位置：src-tauri/target/universal-apple-darwin/release/bundle/dmg/
+```
+
+#### 🐧 Linux (Ubuntu / Debian) 本地构建
+在 Linux 环境下，需先安装系统依赖库：
+```bash
+# 1. 安装基础系统开发库
+sudo apt-get update && sudo apt-get install -y \
+  libwebkit2gtk-4.1-dev \
+  libappindicator3-dev \
+  librsvg2-dev \
+  patchelf \
+  libxdo-dev \
+  libssl-dev \
+  build-essential \
+  curl wget file
+
+# 2. 构建安装包 (.deb 与 .AppImage)
+npm install
+npm run tauri build
+
+# 产物位置：src-tauri/target/release/bundle/deb/ 与 bundle/appimage/
+```
+

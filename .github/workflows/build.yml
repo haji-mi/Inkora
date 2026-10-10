@@ -1,0 +1,86 @@
+name: Multi-Platform CI Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            name: 'macOS'
+            target: 'universal-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            name: 'Linux'
+            target: ''
+          - platform: 'windows-latest'
+            name: 'Windows'
+            target: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libxdo-dev \
+            libssl-dev \
+            build-essential \
+            curl \
+            wget \
+            file
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri Frontend & Rust
+        run: |
+          npm run build
+          if [ "${{ matrix.platform }}" = "macos-latest" ]; then
+            npm run tauri build -- --target universal-apple-darwin
+          else
+            npm run tauri build
+          fi
+        shell: bash
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Inkora-${{ matrix.name }}-bundle
+          path: |
+            src-tauri/target/**/bundle/**/*.dmg
+            src-tauri/target/**/bundle/**/*.app
+            src-tauri/target/**/bundle/**/*.deb
+            src-tauri/target/**/bundle/**/*.AppImage
+            src-tauri/target/**/bundle/**/*.msi
+            src-tauri/target/**/bundle/**/*.exe
+          if-no-files-found: warn
