@@ -240,7 +240,7 @@ html, body {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Tables (Typora-like clean table with rounded border) */
+/* Tables */
 .typora-editor table {
   width: 100%;
   border-collapse: separate;
@@ -285,6 +285,21 @@ html, body {
 
 .dark .typora-editor th {
   background: #21262d;
+}
+
+/* Images in Typora */
+.typora-editor img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 1.2em auto;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark .typora-editor img {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Horizontal Rule */

@@ -68,7 +68,10 @@ export const Editor: React.FC<EditorProps> = ({
       }),
       Underline,
       Highlight,
-      Image,
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+      }),
       Link.configure({
         openOnClick: false,
       }),
@@ -79,6 +82,61 @@ export const Editor: React.FC<EditorProps> = ({
     editorProps: {
       attributes: {
         class: 'typora-editor min-h-full focus:outline-none',
+      },
+      handlePaste: (view, event) => {
+        const items = Array.from(event.clipboardData?.items || []);
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            const file = item.getAsFile();
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const src = e.target?.result as string;
+                if (src) {
+                  const node = view.state.schema.nodes.image.create({
+                    src,
+                    alt: file.name || 'Pasted Image',
+                  });
+                  view.dispatch(view.state.tr.replaceSelectionWith(node));
+                }
+              };
+              reader.readAsDataURL(file);
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        if (!moved && event.dataTransfer?.files?.length) {
+          const file = event.dataTransfer.files[0];
+          if (file.type.startsWith('image/')) {
+            event.preventDefault();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const src = e.target?.result as string;
+              if (src) {
+                const coords = view.posAtCoords({
+                  left: event.clientX,
+                  top: event.clientY,
+                });
+                const node = view.state.schema.nodes.image.create({
+                  src,
+                  alt: file.name,
+                });
+                if (coords) {
+                  view.dispatch(view.state.tr.insert(coords.pos, node));
+                } else {
+                  view.dispatch(view.state.tr.replaceSelectionWith(node));
+                }
+              }
+            };
+            reader.readAsDataURL(file);
+            return true;
+          }
+        }
+        return false;
       },
     },
     onUpdate: ({ editor }) => {
@@ -121,7 +179,7 @@ export const Editor: React.FC<EditorProps> = ({
     },
   });
 
-  // Keep editor content in sync when markdown changes externally (e.g. from file load or source mode)
+  // Keep editor content in sync when markdown changes externally
   useEffect(() => {
     if (!editor) return;
     if (isUpdatingFromSelf.current) {
@@ -162,7 +220,10 @@ export const Editor: React.FC<EditorProps> = ({
         // Ctrl+Shift+M: Insert Math Block
         if (e.key.toLowerCase() === 'm' && e.shiftKey) {
           e.preventDefault();
-          const formula = prompt('输入 LaTeX 公式：', '\\sum_{i=1}^n i = \\frac{n(n+1)}{2}');
+          const formula = prompt(
+            '输入 LaTeX 公式：',
+            '\\sum_{i=1}^n i = \\frac{n(n+1)}{2}'
+          );
           if (formula) {
             editor
               .chain()
