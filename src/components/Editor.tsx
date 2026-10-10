@@ -15,6 +15,7 @@ import Link from '@tiptap/extension-link';
 import Typography from '@tiptap/extension-typography';
 import { common, createLowlight } from 'lowlight';
 import { MathBlock } from '../extensions/MathExtension';
+import { MermaidBlock } from '../extensions/MermaidExtension';
 import { markdownToHtml, htmlToMarkdown } from '../utils/markdown';
 import { TableToolbar } from './TableToolbar';
 
@@ -25,6 +26,7 @@ export interface EditorRef {
   insertTable: () => void;
   insertCodeBlock: () => void;
   insertMath: () => void;
+  insertMermaid: () => void;
 }
 
 interface EditorProps {
@@ -111,6 +113,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
         }),
         Typography,
         MathBlock,
+        MermaidBlock,
       ],
       content: markdownToHtml(markdown),
       editorProps: {
@@ -243,6 +246,18 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
             })
             .run();
         }
+      },
+      insertMermaid: () => {
+        editor
+          ?.chain()
+          .focus()
+          .insertContent({
+            type: 'mermaidBlock',
+            attrs: {
+              code: 'graph TD\n  A[需求分析] --> B(技术选型)\n  B --> C[代码实现]\n  C --> D[自动化验证]',
+            },
+          })
+          .run();
       },
     }));
 

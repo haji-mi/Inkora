@@ -36,6 +36,7 @@ interface TitleBarProps {
   onInsertTable: () => void;
   onInsertCodeBlock: () => void;
   onInsertMath: () => void;
+  onInsertMermaid: () => void;
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
@@ -61,6 +62,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onInsertTable,
   onInsertCodeBlock,
   onInsertMath,
+  onInsertMermaid,
 }) => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuContainerRef = useRef<HTMLDivElement>(null);
@@ -219,6 +221,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 >
                   <span>数学公式</span>
                   <span className="text-[10px] opacity-60">Ctrl+Shift+M</span>
+                </button>
+                <button
+                  onClick={() => { onInsertMermaid(); setActiveMenu(null); }}
+                  className="w-full px-3 py-1.5 hover:bg-[#0071E3] hover:text-white flex items-center justify-between text-left"
+                >
+                  <span>Mermaid 图表</span>
                 </button>
               </div>
             )}

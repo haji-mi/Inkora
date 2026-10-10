@@ -44,14 +44,36 @@ turndownService.addRule('inlineMath', {
   },
 });
 
+// Custom Turndown rule for Mermaid Block
+turndownService.addRule('mermaidBlock', {
+  filter: (node: HTMLElement) => {
+    return (
+      node.nodeName === 'DIV' &&
+      (node.classList.contains('mermaid-block') ||
+        node.classList.contains('mermaid-block-node') ||
+        node.classList.contains('mermaid-container'))
+    );
+  },
+  replacement: (_content: string, node: HTMLElement) => {
+    const raw = decodeURIComponent(node.getAttribute('data-code') || '');
+    return `\n\n\`\`\`mermaid\n${raw.trim()}\n\`\`\`\n\n`;
+  },
+});
+
 /**
  * Convert Markdown string to HTML for TipTap ingestion
  */
 export function markdownToHtml(md: string): string {
   if (!md) return '<p></p>';
 
-  // Pre-process math blocks: replace $$ ... $$ with a designated tag so marked doesn't mangle it
-  let processed = md.replace(/\$\$([\s\S]*?)\$\$/g, (_match, mathContent) => {
+  // Pre-process mermaid code blocks
+  let processed = md.replace(/```mermaid\s*([\s\S]*?)```/g, (_match, code) => {
+    const clean = code.trim();
+    return `<div class="mermaid-block" data-code="${encodeURIComponent(clean)}"></div>`;
+  });
+
+  // Pre-process math blocks: replace $$ ... $$ with a designated tag
+  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (_match, mathContent) => {
     const clean = mathContent.trim();
     return `<div class="math-block" data-math="${encodeURIComponent(clean)}"></div>`;
   });

@@ -266,6 +266,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         onInsertTable={() => editorRef.current?.insertTable()}
         onInsertCodeBlock={() => editorRef.current?.insertCodeBlock()}
         onInsertMath={() => editorRef.current?.insertMath()}
+        onInsertMermaid={() => editorRef.current?.insertMermaid()}
       />
 
       {/* Main Body Area: Sidebar + Editor */}
