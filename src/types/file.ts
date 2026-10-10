@@ -3,6 +3,7 @@ export interface WorkspaceFile {
   name: string;
   content: string;
   updatedAt: number;
+  path?: string;
 }
 
 export interface HeadingItem {

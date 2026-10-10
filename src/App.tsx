@@ -7,6 +7,7 @@ import { QuickOpenModal } from './components/QuickOpenModal';
 import { WorkspaceFile } from './types/file';
 import { defaultMarkdown } from './data/defaultDoc';
 import { extractHeadings } from './utils/outline';
+import { getInitialFile, saveDiskFile } from './utils/platform';
 
 export default function App() {
   const editorRef = useRef<EditorRef>(null);
@@ -63,6 +64,24 @@ export default function App() {
   }, [files, activeFileId]);
 
   const [markdown, setMarkdown] = useState(activeFile.content);
+
+  useEffect(() => {
+    getInitialFile().then((initFile) => {
+      if (initFile) {
+        const fileObj: WorkspaceFile = {
+          id: `disk-${Date.now()}`,
+          name: initFile.name,
+          content: initFile.content,
+          path: initFile.path,
+          updatedAt: Date.now(),
+        };
+        setFiles((prev) => [fileObj, ...prev.filter((f) => f.id !== 'welcome')]);
+        setActiveFileId(fileObj.id);
+        setMarkdown(fileObj.content);
+        setIsModified(false);
+      }
+    });
+  }, []);
 
   // When activeFileId changes, load file content
   useEffect(() => {
@@ -165,6 +184,9 @@ export default function App() {
         f.id === activeFileId ? { ...f, content: markdown, updatedAt: Date.now() } : f
       )
     );
+    if (activeFile.path) {
+      saveDiskFile(activeFile.path, markdown);
+    }
     setIsModified(false);
   };
 
