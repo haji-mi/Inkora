@@ -7,7 +7,9 @@ import {
   ListTree,
   FileText,
   Sidebar as SidebarIcon,
-  Check
+  Check,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
 import { toggleMaximizeWindow } from '../utils/platform';
 
@@ -37,6 +39,10 @@ interface TitleBarProps {
   onInsertCodeBlock: () => void;
   onInsertMath: () => void;
   onInsertMermaid: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
@@ -63,6 +69,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onInsertCodeBlock,
   onInsertMath,
   onInsertMermaid,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
 }) => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuContainerRef = useRef<HTMLDivElement>(null);
@@ -115,6 +125,36 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           <SidebarIcon size={14} />
         </button>
 
+        {/* Undo Quick Button */}
+        <button
+          onClick={onUndo}
+          disabled={!canUndo}
+          title="撤销 (Ctrl+Z)"
+          className={`h-full px-1.5 flex items-center justify-center transition-colors ${
+            canUndo
+              ? 'text-mac-text-primary dark:text-mac-text-darkPrimary hover:bg-black/5 dark:hover:bg-white/10 active:scale-95'
+              : 'text-mac-text-secondary opacity-30 cursor-not-allowed'
+          }`}
+        >
+          <Undo2 size={13} />
+        </button>
+
+        {/* Redo Quick Button */}
+        <button
+          onClick={onRedo}
+          disabled={!canRedo}
+          title="恢复 / 重做 (Ctrl+Y)"
+          className={`h-full px-1.5 flex items-center justify-center transition-colors ${
+            canRedo
+              ? 'text-mac-text-primary dark:text-mac-text-darkPrimary hover:bg-black/5 dark:hover:bg-white/10 active:scale-95'
+              : 'text-mac-text-secondary opacity-30 cursor-not-allowed'
+          }`}
+        >
+          <Redo2 size={13} />
+        </button>
+
+        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-1" />
+
         {/* Menus: 文件, 编辑, 段落, 格式, 视图, 主题 */}
         <div className="flex items-center h-full text-[12px]">
           {/* 文件 (F) */}
@@ -159,6 +199,51 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 >
                   <span>打印 / PDF 导出...</span>
                   <span className="text-[10px] opacity-60">Ctrl+P</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 编辑 (E) */}
+          <div className="relative h-full">
+            <button
+              onClick={() => handleMenuClick('edit')}
+              onMouseEnter={() => handleMenuHover('edit')}
+              className={`h-full px-2.5 flex items-center transition-colors ${
+                activeMenu === 'edit'
+                  ? 'bg-black/10 dark:bg-white/15'
+                  : 'hover:bg-black/5 dark:hover:bg-white/10'
+              }`}
+            >
+              编辑(E)
+            </button>
+            {activeMenu === 'edit' && (
+              <div className="absolute top-full left-0 w-48 bg-white dark:bg-[#2B2B2B] shadow-lg border border-black/10 dark:border-white/10 py-1 rounded-sm text-xs z-50">
+                <button
+                  onClick={() => { onUndo?.(); setActiveMenu(null); }}
+                  disabled={!canUndo}
+                  className={`w-full px-3 py-1.5 flex items-center justify-between text-left ${
+                    canUndo ? 'hover:bg-[#0071E3] hover:text-white' : 'opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Undo2 size={12} />
+                    <span>撤销</span>
+                  </span>
+                  <span className="text-[10px] opacity-60">Ctrl+Z</span>
+                </button>
+                <button
+                  onClick={() => { onRedo?.(); setActiveMenu(null); }}
+                  disabled={!canRedo}
+                  className={`w-full px-3 py-1.5 flex items-center justify-between text-left ${
+                    canRedo ? 'hover:bg-[#0071E3] hover:text-white' : 'opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Redo2 size={12} />
+                    <span>重做 / 恢复</span>
+                  </span>
+                  <span className="text-[10px] opacity-60">Ctrl+Y</span>
                 </button>
               </div>
             )}

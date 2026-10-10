@@ -18,6 +18,7 @@ import { MathBlock } from '../extensions/MathExtension';
 import { MermaidBlock } from '../extensions/MermaidExtension';
 import { markdownToHtml, htmlToMarkdown } from '../utils/markdown';
 import { TableToolbar } from './TableToolbar';
+import { SelectionBubbleMenu } from './SelectionBubbleMenu';
 
 const lowlight = createLowlight(common);
 
@@ -27,6 +28,8 @@ export interface EditorRef {
   insertCodeBlock: () => void;
   insertMath: () => void;
   insertMermaid: () => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 interface EditorProps {
@@ -42,6 +45,7 @@ interface EditorProps {
     column: number;
   }) => void;
   onActiveHeadingChange?: (text: string) => void;
+  onHistoryChange?: (canUndo: boolean, canRedo: boolean) => void;
 }
 
 export const Editor = forwardRef<EditorRef, EditorProps>(
@@ -54,6 +58,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
       isTypewriterMode,
       onMetricsChange,
       onActiveHeadingChange,
+      onHistoryChange,
     },
     ref
   ) => {
@@ -199,6 +204,8 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
           column: currentColumn,
         });
 
+        onHistoryChange?.(editor.can().undo(), editor.can().redo());
+
         // Typewriter mode auto-centering
         if (isTypewriterMode && containerRef.current) {
           try {
@@ -213,6 +220,9 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
             // ignore coordinate errors
           }
         }
+      },
+      onSelectionUpdate: ({ editor }) => {
+        onHistoryChange?.(editor.can().undo(), editor.can().redo());
       },
     });
 
@@ -258,6 +268,12 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
             },
           })
           .run();
+      },
+      undo: () => {
+        editor?.chain().focus().undo().run();
+      },
+      redo: () => {
+        editor?.chain().focus().redo().run();
       },
     }));
 
@@ -405,6 +421,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
         ) : (
           <>
             <EditorContent editor={editor} />
+            <SelectionBubbleMenu editor={editor} />
             <TableToolbar editor={editor} />
           </>
         )}

@@ -37,6 +37,7 @@ export default function App() {
   const [isTypewriterMode, setIsTypewriterMode] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AppTheme>('github');
   const [activeHeading, setActiveHeading] = useState('');
+  const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false });
 
   const activeFile = useMemo(() => {
     return files.find((f) => f.id === activeFileId) || files[0];
@@ -267,6 +268,10 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         onInsertCodeBlock={() => editorRef.current?.insertCodeBlock()}
         onInsertMath={() => editorRef.current?.insertMath()}
         onInsertMermaid={() => editorRef.current?.insertMermaid()}
+        canUndo={historyState.canUndo}
+        canRedo={historyState.canRedo}
+        onUndo={() => editorRef.current?.undo()}
+        onRedo={() => editorRef.current?.redo()}
       />
 
       {/* Main Body Area: Sidebar + Editor */}
@@ -293,6 +298,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
           isTypewriterMode={isTypewriterMode}
           onMetricsChange={setMetrics}
           onActiveHeadingChange={setActiveHeading}
+          onHistoryChange={(canUndo, canRedo) => setHistoryState({ canUndo, canRedo })}
         />
       </main>
 
