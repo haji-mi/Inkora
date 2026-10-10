@@ -3,30 +3,62 @@
 @tailwind utilities;
 
 :root {
-  --mac-blur: 24px;
-  --mac-saturation: 190%;
-  --mac-sidebar-width: 260px;
-  --mac-titlebar-height: 40px;
-  --mac-statusbar-height: 28px;
+  --app-bg: #FFFFFF;
+  --app-text: #24292F;
+  --app-border: rgba(0, 0, 0, 0.08);
+  --app-sidebar-bg: #F8F9FA;
 }
 
-/* Apple HIG Global Styling & Typography */
+/* Typora Theme Variables */
+body.theme-github {
+  --app-bg: #FFFFFF;
+  --app-text: #24292F;
+  --app-border: rgba(0, 0, 0, 0.08);
+  --app-sidebar-bg: #F8F9FA;
+  font-family: "Segoe UI", "Microsoft YaHei", -apple-system, sans-serif;
+}
+
+body.theme-night {
+  --app-bg: #1E1E1E;
+  --app-text: #D4D4D4;
+  --app-border: rgba(255, 255, 255, 0.1);
+  --app-sidebar-bg: #252526;
+  font-family: "Segoe UI", "Microsoft YaHei", -apple-system, sans-serif;
+}
+
+body.theme-newsprint {
+  --app-bg: #F6F3EB;
+  --app-text: #2B2A27;
+  --app-border: rgba(0, 0, 0, 0.1);
+  --app-sidebar-bg: #EFEBE0;
+  font-family: "Georgia", "Times New Roman", "Source Han Serif CN", "Songti SC", serif;
+}
+
+body.theme-gothic {
+  --app-bg: #FAF7F2;
+  --app-text: #332C27;
+  --app-border: rgba(0, 0, 0, 0.09);
+  --app-sidebar-bg: #F1ECE3;
+  font-family: "Century Gothic", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  font-family: "Segoe UI", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Custom Scrollbar in macOS style */
+/* Windows 11 Native Thin Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -34,65 +66,37 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.16);
-  border-radius: 9999px;
-  transition: background 0.2s ease;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
+body.theme-night ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.32);
+  background: rgba(0, 0, 0, 0.35);
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.36);
+body.theme-night ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.38);
 }
 
-/* Apple Liquid / Frosted Glass Material with Specular Edge */
-.mac-glass {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(var(--mac-blur)) saturate(var(--mac-saturation));
-  -webkit-backdrop-filter: blur(var(--mac-blur)) saturate(var(--mac-saturation));
-  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+/* Sidebar Styling */
+.windows-sidebar {
+  background: var(--app-sidebar-bg);
+  border-right: 1px solid var(--app-border);
 }
 
-.dark .mac-glass {
-  background: rgba(30, 30, 30, 0.78);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.mac-glass-sidebar {
-  background: rgba(246, 246, 248, 0.78);
-  backdrop-filter: blur(var(--mac-blur)) saturate(var(--mac-saturation));
-  -webkit-backdrop-filter: blur(var(--mac-blur)) saturate(var(--mac-saturation));
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.3);
-}
-
-.dark .mac-glass-sidebar {
-  background: rgba(26, 26, 26, 0.82);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
-}
-
-/* Typora Typography Styling in WYSIWYG Mode */
+/* Typora Typography Styling */
 .typora-editor {
   max-width: 860px;
   margin: 0 auto;
-  padding: 3.5rem 3rem 8rem 3rem;
-  color: #24292f;
+  padding: 3rem 2.5rem 8rem 2.5rem;
+  color: var(--app-text);
   line-height: 1.7;
   font-size: 16px;
   outline: none;
-}
-
-.dark .typora-editor {
-  color: #e6edf3;
 }
 
 /* Headings */
@@ -106,44 +110,26 @@ html, body {
   line-height: 1.35;
   margin-top: 1.6em;
   margin-bottom: 0.8em;
-  letter-spacing: -0.015em;
-  color: #111827;
-}
-
-.dark .typora-editor h1,
-.dark .typora-editor h2,
-.dark .typora-editor h3,
-.dark .typora-editor h4,
-.dark .typora-editor h5,
-.dark .typora-editor h6 {
-  color: #f3f4f6;
+  letter-spacing: -0.01em;
 }
 
 .typora-editor h1 {
   font-size: 2.15rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--app-border);
   padding-bottom: 0.35em;
   margin-top: 1em;
 }
 
-.dark .typora-editor h1 {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .typora-editor h2 {
   font-size: 1.65rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--app-border);
   padding-bottom: 0.3em;
-}
-
-.dark .typora-editor h2 {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .typora-editor h3 { font-size: 1.35rem; }
 .typora-editor h4 { font-size: 1.15rem; }
 .typora-editor h5 { font-size: 1rem; }
-.typora-editor h6 { font-size: 0.9rem; color: #6b7280; }
+.typora-editor h6 { font-size: 0.9rem; opacity: 0.75; }
 
 /* Paragraph & Lists */
 .typora-editor p {
@@ -196,28 +182,26 @@ html, body {
   border-left: 4px solid #0071E3;
   padding: 0.4em 1em;
   margin: 1em 0;
-  color: #4b5563;
-  background: rgba(0, 113, 227, 0.04);
-  border-radius: 0 6px 6px 0;
+  background: rgba(0, 113, 227, 0.05);
+  border-radius: 0 4px 4px 0;
 }
 
-.dark .typora-editor blockquote {
+body.theme-night .typora-editor blockquote {
   border-left-color: #388BFD;
-  color: #9ca3af;
   background: rgba(56, 139, 253, 0.08);
 }
 
 /* Inline Code */
 .typora-editor code:not(pre code) {
-  font-family: SF Mono, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.88em;
-  padding: 0.2em 0.4em;
-  border-radius: 4px;
+  font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
   background-color: rgba(175, 184, 193, 0.2);
-  color: #cf222e;
+  color: #c7254e;
 }
 
-.dark .typora-editor code:not(pre code) {
+body.theme-night .typora-editor code:not(pre code) {
   background-color: rgba(110, 118, 129, 0.3);
   color: #ff7b72;
 }
@@ -225,104 +209,59 @@ html, body {
 /* Code Block */
 .typora-editor pre {
   background: #f6f8fa;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
   padding: 1rem 1.25rem;
   margin: 1.2em 0;
   overflow-x: auto;
-  font-family: SF Mono, Menlo, Monaco, Consolas, monospace;
+  font-family: Consolas, "Cascadia Code", "Courier New", monospace;
   font-size: 0.9em;
   line-height: 1.5;
 }
 
-.dark .typora-editor pre {
+body.theme-night .typora-editor pre {
   background: #161b22;
-  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Tables */
 .typora-editor table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   margin: 1.5em 0;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.dark .typora-editor table {
-  border-color: rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--app-border);
 }
 
 .typora-editor th,
 .typora-editor td {
   padding: 0.6em 1em;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.dark .typora-editor th,
-.dark .typora-editor td {
-  border-right-color: rgba(255, 255, 255, 0.08);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-}
-
-.typora-editor th:last-child,
-.typora-editor td:last-child {
-  border-right: none;
-}
-
-.typora-editor tr:last-child td {
-  border-bottom: none;
+  border: 1px solid var(--app-border);
 }
 
 .typora-editor th {
-  background: #f3f4f6;
+  background: rgba(0, 0, 0, 0.03);
   font-weight: 600;
   text-align: left;
 }
 
-.dark .typora-editor th {
-  background: #21262d;
+body.theme-night .typora-editor th {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Images in Typora */
+/* Images */
 .typora-editor img {
   max-width: 100%;
-  border-radius: 8px;
+  border-radius: 4px;
   margin: 1.2em auto;
   display: block;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--app-border);
 }
 
-.dark .typora-editor img {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-/* Horizontal Rule */
-.typora-editor hr {
-  height: 2px;
-  padding: 0;
-  margin: 2em 0;
-  background-color: rgba(0, 0, 0, 0.08);
-  border: 0;
-}
-
-.dark .typora-editor hr {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Focus Mode: Dim other blocks when enabled */
+/* Focus Mode */
 .focus-mode .typora-editor > * {
-  opacity: 0.32;
-  transition: opacity 0.25s ease;
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
 }
 
-.focus-mode .typora-editor > *:has(.ProseMirror-selectednode),
-.focus-mode .typora-editor > *:has(span.ProseMirror-trailingBreak),
 .focus-mode .typora-editor > *:focus-within {
   opacity: 1;
 }

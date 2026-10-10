@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { TitleBar } from './components/TitleBar';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { TitleBar, AppTheme } from './components/TitleBar';
 import { StatusBar } from './components/StatusBar';
 import { Sidebar } from './components/Sidebar';
-import { Editor } from './components/Editor';
+import { Editor, EditorRef } from './components/Editor';
 import { QuickOpenModal } from './components/QuickOpenModal';
 import { WorkspaceFile } from './types/file';
 import { defaultMarkdown } from './data/defaultDoc';
 import { extractHeadings } from './utils/outline';
 
 export default function App() {
+  const editorRef = useRef<EditorRef>(null);
+
   // Initial workspace files
   const [files, setFiles] = useState<WorkspaceFile[]>([
     {
@@ -33,7 +35,7 @@ export default function App() {
   const [isSourceMode, setIsSourceMode] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isTypewriterMode, setIsTypewriterMode] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<AppTheme>('github');
 
   const activeFile = useMemo(() => {
     return files.find((f) => f.id === activeFileId) || files[0];
@@ -70,19 +72,27 @@ export default function App() {
     }));
   }, [markdown]);
 
-  // Sync dark mode class
+  // Sync theme classes on document.body and html
   useEffect(() => {
-    if (isDarkMode) {
+    document.body.className = `theme-${currentTheme}`;
+    if (currentTheme === 'night') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [isDarkMode]);
+  }, [currentTheme]);
 
-  // Global application shortcuts (Typora muscular memory)
+  // Global application shortcuts (Windows Typora muscular memory)
   useEffect(() => {
     const handleGlobalShortcuts = (e: KeyboardEvent) => {
-      // Ctrl+P: Quick Open Spotlight
+      // Ctrl+N: New Document
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n' && !e.shiftKey) {
+        e.preventDefault();
+        handleCreateFile();
+        return;
+      }
+
+      // Ctrl+P: Quick Open Spotlight / Search
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
         setQuickOpenOpen((prev) => !prev);
@@ -171,7 +181,6 @@ export default function App() {
   };
 
   const handleHeadingClick = (headingText: string) => {
-    // Find heading element in editor DOM and smoothly scroll to it
     const editorEl = document.querySelector('.typora-editor');
     if (!editorEl) return;
     const headingElements = editorEl.querySelectorAll('h1, h2, h3, h4, h5, h6');
@@ -196,10 +205,10 @@ export default function App() {
 <title>${activeFile.name}</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" />
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #24292f; }
+body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #24292f; }
 h1,h2,h3 { font-weight: 600; }
 pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow: auto; }
-code { font-family: SF Mono, Consolas, monospace; }
+code { font-family: Consolas, monospace; }
 table { width: 100%; border-collapse: collapse; margin: 20px 0; }
 th, td { border: 1px solid #d0d7de; padding: 8px 12px; }
 th { background: #f6f8fa; }
@@ -225,11 +234,11 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
 
   return (
     <div
-      className={`h-screen w-screen flex flex-col overflow-hidden bg-mac-bg-light dark:bg-mac-bg-dark transition-colors duration-200 select-none ${
+      className={`h-screen w-screen flex flex-col overflow-hidden transition-colors duration-200 select-none ${
         isFocusMode ? 'focus-mode' : ''
       }`}
     >
-      {/* macOS TitleBar */}
+      {/* Windows Native Typora TitleBar & Menubar */}
       <TitleBar
         fileName={activeFile.name}
         isModified={isModified}
@@ -246,10 +255,16 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
           setSidebarOpen(true);
           setOutlineOpen(!outlineOpen);
         }}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        currentTheme={currentTheme}
+        onSelectTheme={setCurrentTheme}
+        onNewFile={handleCreateFile}
+        onSaveFile={saveCurrentFile}
         onExportHtml={handleExportHtml}
         onExportPdf={handleExportPdf}
+        onInsertHeading={(lvl) => editorRef.current?.insertHeading(lvl)}
+        onInsertTable={() => editorRef.current?.insertTable()}
+        onInsertCodeBlock={() => editorRef.current?.insertCodeBlock()}
+        onInsertMath={() => editorRef.current?.insertMath()}
       />
 
       {/* Main Body Area: Sidebar + Editor */}
@@ -267,6 +282,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         />
 
         <Editor
+          ref={editorRef}
           markdown={markdown}
           onChange={handleContentChange}
           isSourceMode={isSourceMode}
@@ -276,7 +292,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         />
       </main>
 
-      {/* Status Bar */}
+      {/* Typora Status Bar */}
       <StatusBar
         wordCount={metrics.wordCount}
         charCount={metrics.charCount}
@@ -287,7 +303,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         isTypewriterMode={isTypewriterMode}
       />
 
-      {/* Quick Open Modal (Ctrl+P) */}
+      {/* Quick Open Spotlight Modal (Ctrl+P) */}
       <QuickOpenModal
         isOpen={quickOpenOpen}
         onClose={() => setQuickOpenOpen(false)}

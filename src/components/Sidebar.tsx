@@ -42,8 +42,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <aside className="w-[260px] h-full mac-glass-sidebar border-r flex flex-col z-20 shrink-0 select-none transition-all duration-200">
-      {/* Top Segmented Control (macOS Style) */}
+    <aside className="w-[260px] h-full windows-sidebar border-r border-black/10 dark:border-white/10 flex flex-col z-20 shrink-0 select-none transition-all duration-200">
+      {/* Top Segmented Control (Windows Style) */}
       <div className="p-2 border-b border-black/5 dark:border-white/5 flex items-center justify-between gap-1">
         <div className="flex-1 bg-black/5 dark:bg-white/5 p-0.5 rounded-lg flex items-center text-xs">
           <button
@@ -177,3 +177,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
+
