@@ -272,6 +272,8 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         canRedo={historyState.canRedo}
         onUndo={() => editorRef.current?.undo()}
         onRedo={() => editorRef.current?.redo()}
+        onOpenFind={() => editorRef.current?.openFind('find')}
+        onOpenReplace={() => editorRef.current?.openFind('replace')}
       />
 
       {/* Main Body Area: Sidebar + Editor */}
@@ -302,7 +304,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         />
       </main>
 
-      {/* Typora Status Bar */}
+      {/* Typora Status Bar with Word Count Popover */}
       <StatusBar
         wordCount={metrics.wordCount}
         charCount={metrics.charCount}
@@ -311,6 +313,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         isSourceMode={isSourceMode}
         isFocusMode={isFocusMode}
         isTypewriterMode={isTypewriterMode}
+        fullContent={markdown}
       />
 
       {/* Quick Open Spotlight Modal (Ctrl+P) */}

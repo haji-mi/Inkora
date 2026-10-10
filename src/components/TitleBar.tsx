@@ -43,6 +43,8 @@ interface TitleBarProps {
   canRedo?: boolean;
   onUndo?: () => void;
   onRedo?: () => void;
+  onOpenFind?: () => void;
+  onOpenReplace?: () => void;
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
@@ -73,6 +75,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   canRedo = false,
   onUndo,
   onRedo,
+  onOpenFind,
+  onOpenReplace,
 }) => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuContainerRef = useRef<HTMLDivElement>(null);
@@ -244,6 +248,21 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                     <span>重做 / 恢复</span>
                   </span>
                   <span className="text-[10px] opacity-60">Ctrl+Y</span>
+                </button>
+                <div className="my-1 border-t border-black/10 dark:border-white/10" />
+                <button
+                  onClick={() => { onOpenFind?.(); setActiveMenu(null); }}
+                  className="w-full px-3 py-1.5 hover:bg-[#0071E3] hover:text-white flex items-center justify-between text-left"
+                >
+                  <span>查找...</span>
+                  <span className="text-[10px] opacity-60">Ctrl+F</span>
+                </button>
+                <button
+                  onClick={() => { onOpenReplace?.(); setActiveMenu(null); }}
+                  className="w-full px-3 py-1.5 hover:bg-[#0071E3] hover:text-white flex items-center justify-between text-left"
+                >
+                  <span>替换...</span>
+                  <span className="text-[10px] opacity-60">Ctrl+H</span>
                 </button>
               </div>
             )}

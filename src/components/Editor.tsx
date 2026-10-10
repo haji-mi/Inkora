@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -19,6 +19,7 @@ import { MermaidBlock } from '../extensions/MermaidExtension';
 import { markdownToHtml, htmlToMarkdown } from '../utils/markdown';
 import { TableToolbar } from './TableToolbar';
 import { SelectionBubbleMenu } from './SelectionBubbleMenu';
+import { FindReplaceBar } from './FindReplaceBar';
 
 const lowlight = createLowlight(common);
 
@@ -30,6 +31,7 @@ export interface EditorRef {
   insertMermaid: () => void;
   undo: () => void;
   redo: () => void;
+  openFind: (mode?: 'find' | 'replace') => void;
 }
 
 interface EditorProps {
@@ -64,6 +66,8 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const isUpdatingFromSelf = useRef(false);
+    const [isFindOpen, setIsFindOpen] = useState(false);
+    const [findMode, setFindMode] = useState<'find' | 'replace'>('find');
 
     const editor = useEditor({
       extensions: [
@@ -275,6 +279,10 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
       redo: () => {
         editor?.chain().focus().redo().run();
       },
+      openFind: (mode = 'find') => {
+        setIsFindOpen(true);
+        setFindMode(mode);
+      },
     }));
 
     // Keep editor content in sync when markdown changes externally
@@ -292,9 +300,25 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
 
     // Handle Typora keyboard shortcuts in WYSIWYG mode
     useEffect(() => {
-      if (!editor) return;
-
       const handleKeyDown = (e: KeyboardEvent) => {
+        // Ctrl+F: Find
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !e.shiftKey) {
+          e.preventDefault();
+          setIsFindOpen(true);
+          setFindMode('find');
+          return;
+        }
+
+        // Ctrl+H: Replace
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h' && !e.shiftKey) {
+          e.preventDefault();
+          setIsFindOpen(true);
+          setFindMode('replace');
+          return;
+        }
+
+        if (!editor) return;
+
         // Heading shortcuts: Ctrl+1 through Ctrl+6
         if (e.ctrlKey || e.metaKey) {
           if (e.key >= '1' && e.key <= '6') {
@@ -425,6 +449,17 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
             <TableToolbar editor={editor} />
           </>
         )}
+
+        {/* Floating Find & Replace Panel (Ctrl+F / Ctrl+H) */}
+        <FindReplaceBar
+          isOpen={isFindOpen}
+          onClose={() => setIsFindOpen(false)}
+          editor={editor}
+          isSourceMode={isSourceMode}
+          markdown={markdown}
+          onSourceReplaceAll={onChange}
+          initialMode={findMode}
+        />
       </div>
     );
   }
