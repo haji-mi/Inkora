@@ -182,19 +182,72 @@ export default function App() {
     }
   };
 
-  const handleHeadingClick = (headingText: string) => {
+  const handleHeadingClick = (headingText: string, headingIndex?: number) => {
+    setActiveHeading(headingText);
+
+    // 1. 如果在源码编辑模式下 (textarea)，滚动并定位光标到对应标题行
+    if (isSourceMode) {
+      const textarea = document.querySelector('textarea') as HTMLTextAreaElement | null;
+      if (textarea) {
+        const lines = markdown.split('\n');
+        let charOffset = 0;
+        let matchedLine = -1;
+        let curHeadingIdx = 0;
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (/^#{1,6}\s+/.test(line)) {
+            if (
+              (typeof headingIndex === 'number' && curHeadingIdx === headingIndex) ||
+              line.includes(headingText)
+            ) {
+              matchedLine = i;
+              break;
+            }
+            curHeadingIdx++;
+          }
+          charOffset += line.length + 1;
+        }
+
+        if (matchedLine !== -1) {
+          textarea.focus();
+          textarea.setSelectionRange(charOffset, charOffset + lines[matchedLine].length);
+          const lineHeight = 24;
+          textarea.scrollTop = Math.max(0, matchedLine * lineHeight - 120);
+        }
+      }
+      return;
+    }
+
+    // 2. 所见即所得模式下 (WYSIWYG)
     const editorEl = document.querySelector('.typora-editor');
     if (!editorEl) return;
-    const headingElements = editorEl.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    for (const el of Array.from(headingElements)) {
-      if (el.textContent && el.textContent.includes(headingText)) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('bg-[#0071E3]/10', 'rounded', 'transition-colors');
-        setTimeout(() => {
-          el.classList.remove('bg-[#0071E3]/10');
-        }, 1200);
-        break;
-      }
+    const headingElements = Array.from(editorEl.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+    if (headingElements.length === 0) return;
+
+    let targetEl: Element | undefined;
+
+    // 优先 1：绝对次序索引精确定位 (100% 解决重名、转义符和 H3 定位问题)
+    if (typeof headingIndex === 'number' && headingElements[headingIndex]) {
+      targetEl = headingElements[headingIndex];
+    }
+
+    // 兜底 2：规范化字符文本模糊匹配（去除空格、转义符和标点）
+    if (!targetEl) {
+      const norm = (s: string) => s.replace(/[\s\\.*_`~#+!]/g, '').toLowerCase();
+      const searchNorm = norm(headingText);
+      targetEl = headingElements.find((el) => {
+        const textNorm = norm(el.textContent || '');
+        return textNorm === searchNorm || textNorm.includes(searchNorm) || searchNorm.includes(textNorm);
+      });
+    }
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetEl.classList.add('bg-[#0071E3]/15', 'rounded', 'transition-all');
+      setTimeout(() => {
+        targetEl?.classList.remove('bg-[#0071E3]/15');
+      }, 1500);
     }
   };
 

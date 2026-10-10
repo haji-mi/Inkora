@@ -8,7 +8,7 @@ interface QuickOpenModalProps {
   files: WorkspaceFile[];
   onSelectFile: (file: WorkspaceFile) => void;
   headings: HeadingItem[];
-  onSelectHeading: (text: string) => void;
+  onSelectHeading: (text: string, index?: number) => void;
 }
 
 export const QuickOpenModal: React.FC<QuickOpenModalProps> = ({
@@ -64,7 +64,8 @@ export const QuickOpenModal: React.FC<QuickOpenModalProps> = ({
         if (item.type === 'file') {
           onSelectFile(item.data as WorkspaceFile);
         } else {
-          onSelectHeading((item.data as HeadingItem).text);
+          const heading = item.data as HeadingItem;
+          onSelectHeading(heading.text, heading.index);
         }
         onClose();
       }

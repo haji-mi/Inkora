@@ -22,6 +22,19 @@ const turndownService = new TurndownService({
 // Use GFM plugins (tables, strikethrough, task lists)
 turndownService.use(gfm);
 
+// Custom rule for headings: preserve natural numbering without escaping (e.g. "1." instead of "1\.")
+turndownService.addRule('cleanHeadings', {
+  filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  replacement: (content, node) => {
+    const hLevel = Number(node.nodeName.charAt(1));
+    const cleanContent = content
+      .trim()
+      .replace(/(\d+)\\\./g, '$1.')
+      .replace(/\\([.\-*_`~#+!])/g, '$1');
+    return `\n\n${'#'.repeat(hLevel)} ${cleanContent}\n\n`;
+  },
+});
+
 // Custom Turndown rule for Math Block
 turndownService.addRule('mathBlock', {
   filter: (node: HTMLElement) => {

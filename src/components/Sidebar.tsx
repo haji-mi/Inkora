@@ -21,7 +21,7 @@ interface SidebarProps {
   onCreateFile: () => void;
   onDeleteFile: (id: string) => void;
   headings: HeadingItem[];
-  onHeadingClick: (text: string) => void;
+  onHeadingClick: (text: string, index?: number) => void;
   activeHeadingText?: string;
 }
 
@@ -153,17 +153,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             ) : (
               <div className="space-y-0.5">
-                {headings.map((item) => {
+                {headings.map((item, itemIdx) => {
                   const indent = (item.level - 1) * 12;
+                  const norm = (s: string) => s.replace(/[\s\\.*_`~#+!]/g, '').toLowerCase();
+                  const targetIndex = item.index ?? itemIdx;
                   const isActive =
                     activeHeadingText &&
-                    (item.text === activeHeadingText ||
-                      activeHeadingText.includes(item.text) ||
-                      item.text.includes(activeHeadingText));
+                    (norm(item.text) === norm(activeHeadingText) ||
+                      norm(activeHeadingText).includes(norm(item.text)) ||
+                      norm(item.text).includes(norm(activeHeadingText)));
                   return (
                     <button
                       key={item.id}
-                      onClick={() => onHeadingClick(item.text)}
+                      onClick={() => onHeadingClick(item.text, targetIndex)}
                       style={{ paddingLeft: `${indent + 8}px` }}
                       className={`w-full text-left py-1 pr-2 rounded-md flex items-center gap-1.5 text-xs transition-colors group truncate ${
                         isActive
