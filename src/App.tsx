@@ -1,20 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TitleBar } from './components/TitleBar';
 import { StatusBar } from './components/StatusBar';
+import { Sidebar } from './components/Sidebar';
 import { Editor } from './components/Editor';
+import { QuickOpenModal } from './components/QuickOpenModal';
+import { WorkspaceFile } from './types/file';
 import { defaultMarkdown } from './data/defaultDoc';
+import { extractHeadings } from './utils/outline';
 
 export default function App() {
-  const [fileName, setFileName] = useState('欢迎使用 Inkora.md');
+  // Initial workspace files
+  const [files, setFiles] = useState<WorkspaceFile[]>([
+    {
+      id: 'welcome',
+      name: '欢迎使用 Inkora.md',
+      content: defaultMarkdown,
+      updatedAt: Date.now(),
+    },
+    {
+      id: 'notes',
+      name: '快捷笔记.md',
+      content: '# 快捷随笔\n\n- 在这里随时记录你的奇思妙想...\n- 支持 **粗体**、`代码` 以及公式。',
+      updatedAt: Date.now() - 3600000,
+    },
+  ]);
+
+  const [activeFileId, setActiveFileId] = useState('welcome');
   const [isModified, setIsModified] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [outlineOpen, setOutlineOpen] = useState(false);
+  const [quickOpenOpen, setQuickOpenOpen] = useState(false);
   const [isSourceMode, setIsSourceMode] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isTypewriterMode, setIsTypewriterMode] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const [markdown, setMarkdown] = useState(defaultMarkdown);
+  const activeFile = useMemo(() => {
+    return files.find((f) => f.id === activeFileId) || files[0];
+  }, [files, activeFileId]);
+
+  const [markdown, setMarkdown] = useState(activeFile.content);
+
+  // When activeFileId changes, load file content
+  useEffect(() => {
+    setMarkdown(activeFile.content);
+    setIsModified(false);
+  }, [activeFileId]);
+
+  // Real-time extracted headings for outline
+  const headings = useMemo(() => {
+    return extractHeadings(markdown);
+  }, [markdown]);
+
   const [metrics, setMetrics] = useState({
     wordCount: 0,
     charCount: 0,
@@ -22,19 +59,18 @@ export default function App() {
     column: 1,
   });
 
-  // Calculate initial metrics
+  // Calculate metrics on markdown change
   useEffect(() => {
-    const charCount = defaultMarkdown.length;
-    const wordCount = (defaultMarkdown.match(/[\w\u4e00-\u9fa5]+/g) || []).length;
-    setMetrics({
+    const charCount = markdown.length;
+    const wordCount = (markdown.match(/[\w\u4e00-\u9fa5]+/g) || []).length;
+    setMetrics((prev) => ({
+      ...prev,
       charCount,
       wordCount,
-      line: 1,
-      column: 1,
-    });
-  }, []);
+    }));
+  }, [markdown]);
 
-  // Sync dark mode class on document element
+  // Sync dark mode class
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -46,7 +82,14 @@ export default function App() {
   // Global application shortcuts (Typora muscular memory)
   useEffect(() => {
     const handleGlobalShortcuts = (e: KeyboardEvent) => {
-      // Ctrl+/ or Cmd+/: Toggle Source Mode
+      // Ctrl+P: Quick Open Spotlight
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setQuickOpenOpen((prev) => !prev);
+        return;
+      }
+
+      // Ctrl+/ : Toggle Source Mode
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         setIsSourceMode((prev) => !prev);
@@ -77,19 +120,71 @@ export default function App() {
       // Ctrl+S: Save Document
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && !e.shiftKey) {
         e.preventDefault();
-        setIsModified(false);
-        // Save logic to file or localStorage
-        localStorage.setItem('inkora_saved_doc', markdown);
+        saveCurrentFile();
       }
     };
 
     window.addEventListener('keydown', handleGlobalShortcuts);
     return () => window.removeEventListener('keydown', handleGlobalShortcuts);
-  }, [markdown]);
+  }, [markdown, activeFileId]);
+
+  const saveCurrentFile = () => {
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.id === activeFileId ? { ...f, content: markdown, updatedAt: Date.now() } : f
+      )
+    );
+    setIsModified(false);
+  };
 
   const handleContentChange = (newMd: string) => {
     setMarkdown(newMd);
     setIsModified(true);
+  };
+
+  const handleSelectFile = (file: WorkspaceFile) => {
+    if (isModified) {
+      saveCurrentFile();
+    }
+    setActiveFileId(file.id);
+  };
+
+  const handleCreateFile = () => {
+    const newId = `file-${Date.now()}`;
+    const newFile: WorkspaceFile = {
+      id: newId,
+      name: `新建文档-${files.length + 1}.md`,
+      content: '# 新建文档\n\n开始书写你的内容...',
+      updatedAt: Date.now(),
+    };
+    setFiles((prev) => [newFile, ...prev]);
+    setActiveFileId(newId);
+  };
+
+  const handleDeleteFile = (id: string) => {
+    if (files.length <= 1) return;
+    const remaining = files.filter((f) => f.id !== id);
+    setFiles(remaining);
+    if (activeFileId === id) {
+      setActiveFileId(remaining[0].id);
+    }
+  };
+
+  const handleHeadingClick = (headingText: string) => {
+    // Find heading element in editor DOM and smoothly scroll to it
+    const editorEl = document.querySelector('.typora-editor');
+    if (!editorEl) return;
+    const headingElements = editorEl.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    for (const el of Array.from(headingElements)) {
+      if (el.textContent && el.textContent.includes(headingText)) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('bg-[#0071E3]/10', 'rounded', 'transition-colors');
+        setTimeout(() => {
+          el.classList.remove('bg-[#0071E3]/10');
+        }, 1200);
+        break;
+      }
+    }
   };
 
   const handleExportHtml = () => {
@@ -98,7 +193,7 @@ export default function App() {
 <html>
 <head>
 <meta charset="utf-8">
-<title>${fileName}</title>
+<title>${activeFile.name}</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" />
 <style>
 body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #24292f; }
@@ -119,7 +214,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = fileName.replace(/\.md$/, '.html');
+    a.download = activeFile.name.replace(/\.md$/, '.html');
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -136,7 +231,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
     >
       {/* macOS TitleBar */}
       <TitleBar
-        fileName={fileName}
+        fileName={activeFile.name}
         isModified={isModified}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
@@ -147,15 +242,30 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         isTypewriterMode={isTypewriterMode}
         onToggleTypewriterMode={() => setIsTypewriterMode(!isTypewriterMode)}
         outlineOpen={outlineOpen}
-        onToggleOutline={() => setOutlineOpen(!outlineOpen)}
+        onToggleOutline={() => {
+          setSidebarOpen(true);
+          setOutlineOpen(!outlineOpen);
+        }}
         isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
         onExportHtml={handleExportHtml}
         onExportPdf={handleExportPdf}
       />
 
-      {/* Main Body Area */}
+      {/* Main Body Area: Sidebar + Editor */}
       <main className="flex-1 flex overflow-hidden relative">
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          files={files}
+          activeFileId={activeFileId}
+          onSelectFile={handleSelectFile}
+          onCreateFile={handleCreateFile}
+          onDeleteFile={handleDeleteFile}
+          headings={headings}
+          onHeadingClick={handleHeadingClick}
+        />
+
         <Editor
           markdown={markdown}
           onChange={handleContentChange}
@@ -175,6 +285,16 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
         isSourceMode={isSourceMode}
         isFocusMode={isFocusMode}
         isTypewriterMode={isTypewriterMode}
+      />
+
+      {/* Quick Open Modal (Ctrl+P) */}
+      <QuickOpenModal
+        isOpen={quickOpenOpen}
+        onClose={() => setQuickOpenOpen(false)}
+        files={files}
+        onSelectFile={handleSelectFile}
+        headings={headings}
+        onSelectHeading={handleHeadingClick}
       />
     </div>
   );
