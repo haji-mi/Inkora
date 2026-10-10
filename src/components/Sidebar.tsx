@@ -22,6 +22,7 @@ interface SidebarProps {
   onDeleteFile: (id: string) => void;
   headings: HeadingItem[];
   onHeadingClick: (text: string) => void;
+  activeHeadingText?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeleteFile,
   headings,
   onHeadingClick,
+  activeHeadingText,
 }) => {
   const [activeTab, setActiveTab] = useState<'files' | 'outline'>('files');
 
@@ -153,17 +155,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="space-y-0.5">
                 {headings.map((item) => {
                   const indent = (item.level - 1) * 12;
+                  const isActive =
+                    activeHeadingText &&
+                    (item.text === activeHeadingText ||
+                      activeHeadingText.includes(item.text) ||
+                      item.text.includes(activeHeadingText));
                   return (
                     <button
                       key={item.id}
                       onClick={() => onHeadingClick(item.text)}
                       style={{ paddingLeft: `${indent + 8}px` }}
-                      className="w-full text-left py-1 pr-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1.5 text-xs text-mac-text-primary dark:text-mac-text-darkPrimary transition-colors group truncate"
+                      className={`w-full text-left py-1 pr-2 rounded-md flex items-center gap-1.5 text-xs transition-colors group truncate ${
+                        isActive
+                          ? 'bg-[#0071E3]/15 text-[#0071E3] dark:text-[#388BFD] font-medium border-l-2 border-[#0071E3]'
+                          : 'text-mac-text-primary dark:text-mac-text-darkPrimary hover:bg-black/5 dark:hover:bg-white/5'
+                      }`}
                     >
-                      <span className="text-[10px] font-mono font-medium text-mac-text-secondary opacity-70 group-hover:text-[#0071E3] group-hover:opacity-100">
+                      <span
+                        className={`text-[10px] font-mono font-medium ${
+                          isActive
+                            ? 'text-[#0071E3] dark:text-[#388BFD]'
+                            : 'text-mac-text-secondary opacity-70 group-hover:text-[#0071E3] group-hover:opacity-100'
+                        }`}
+                      >
                         H{item.level}
                       </span>
-                      <span className="truncate group-hover:text-[#0071E3] dark:group-hover:text-[#388BFD]">
+                      <span className="truncate">
                         {item.text}
                       </span>
                     </button>

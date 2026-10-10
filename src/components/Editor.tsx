@@ -39,6 +39,7 @@ interface EditorProps {
     line: number;
     column: number;
   }) => void;
+  onActiveHeadingChange?: (text: string) => void;
 }
 
 export const Editor = forwardRef<EditorRef, EditorProps>(
@@ -50,6 +51,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
       isFocusMode,
       isTypewriterMode,
       onMetricsChange,
+      onActiveHeadingChange,
     },
     ref
   ) => {
@@ -69,6 +71,27 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
         }),
         Table.configure({
           resizable: true,
+        }).extend({
+          addKeyboardShortcuts() {
+            return {
+              Tab: () => {
+                if (!this.editor.isActive('table')) return false;
+                const success = this.editor.commands.goToNextCell();
+                if (!success) {
+                  return this.editor
+                    .chain()
+                    .addRowAfter()
+                    .goToNextCell()
+                    .run();
+                }
+                return true;
+              },
+              'Shift-Tab': () => {
+                if (!this.editor.isActive('table')) return false;
+                return this.editor.commands.goToPreviousCell();
+              },
+            };
+          },
         }),
         TableRow,
         TableHeader,
@@ -300,6 +323,34 @@ export const Editor = forwardRef<EditorRef, EditorProps>(
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }, [editor]);
+
+    // Scroll Spy for TOC Heading Synchronization
+    useEffect(() => {
+      const container = containerRef.current;
+      if (!container || !onActiveHeadingChange) return;
+
+      const handleScroll = () => {
+        const headingEls = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        const containerTop = container.getBoundingClientRect().top;
+        let found = '';
+
+        for (const el of Array.from(headingEls)) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top - containerTop <= 160) {
+            found = el.textContent?.replace(/^#+\s*/, '').trim() || '';
+          } else {
+            break;
+          }
+        }
+
+        if (found) {
+          onActiveHeadingChange(found);
+        }
+      };
+
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      return () => container.removeEventListener('scroll', handleScroll);
+    }, [onActiveHeadingChange]);
 
     // Source code mode text area handler
     const handleSourceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

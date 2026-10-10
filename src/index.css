@@ -131,6 +131,67 @@ body.theme-night ::-webkit-scrollbar-thumb:hover {
 .typora-editor h5 { font-size: 1rem; }
 .typora-editor h6 { font-size: 0.9rem; opacity: 0.75; }
 
+/* Typora-style Live Markdown Syntax Cues on Cursor Focus */
+.typora-editor h1:focus-within::before {
+  content: "# ";
+  color: #0071E3;
+  opacity: 0.45;
+  font-family: Consolas, monospace;
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-right: 0.2em;
+}
+
+.typora-editor h2:focus-within::before {
+  content: "## ";
+  color: #0071E3;
+  opacity: 0.45;
+  font-family: Consolas, monospace;
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-right: 0.2em;
+}
+
+.typora-editor h3:focus-within::before {
+  content: "### ";
+  color: #0071E3;
+  opacity: 0.45;
+  font-family: Consolas, monospace;
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-right: 0.2em;
+}
+
+.typora-editor h4:focus-within::before {
+  content: "#### ";
+  color: #0071E3;
+  opacity: 0.45;
+  font-family: Consolas, monospace;
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-right: 0.2em;
+}
+
+.typora-editor h5:focus-within::before {
+  content: "##### ";
+  color: #0071E3;
+  opacity: 0.45;
+  font-family: Consolas, monospace;
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-right: 0.2em;
+}
+
+.typora-editor h6:focus-within::before {
+  content: "###### ";
+  color: #0071E3;
+  opacity: 0.45;
+  font-family: Consolas, monospace;
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-right: 0.2em;
+}
+
 /* Paragraph & Lists */
 .typora-editor p {
   margin-top: 0.7em;

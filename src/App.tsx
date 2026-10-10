@@ -36,6 +36,7 @@ export default function App() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isTypewriterMode, setIsTypewriterMode] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AppTheme>('github');
+  const [activeHeading, setActiveHeading] = useState('');
 
   const activeFile = useMemo(() => {
     return files.find((f) => f.id === activeFileId) || files[0];
@@ -279,6 +280,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
           onDeleteFile={handleDeleteFile}
           headings={headings}
           onHeadingClick={handleHeadingClick}
+          activeHeadingText={activeHeading}
         />
 
         <Editor
@@ -289,6 +291,7 @@ ${document.querySelector('.typora-editor')?.innerHTML || markdown}
           isFocusMode={isFocusMode}
           isTypewriterMode={isTypewriterMode}
           onMetricsChange={setMetrics}
+          onActiveHeadingChange={setActiveHeading}
         />
       </main>
 
